@@ -88,32 +88,30 @@ class Enemy extends aSprite {
 
 var canvas;
 var canvasContext;
+
 var travel=0;
-var theCar;
+var mario;
+
+var lastPt=null;
+var elapsed = null;
+
+var screenMode = 0;
+
 var leftIcon;
 var rightIcon;
-var lastPt=null;
-var gameOverScreen = false;
-var elapsed = null;
+
 var leftPressed = false;
 var rightPressed = false;
+
+var bkgdAudio = new Audio('SuperMarioBros.mp3');
+var clickAudio = new Audio('click.wav');
+var jumpAudio = new Audio('jump.wav');
+var brickSmash = new Audio('brickSmash.wav');
+var kickSound = new Audio('kick.wav');
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-}
-
-function resizeCar() {
-  theCar.sImage.width = window.innerWidth/5;
-  theCar.sImage.height = window.innerHeight/5;
-  //console.log(theCar.sImage.height*5);
-}
-
-function resizeBackground() {
-  //console.log(canvas.height)
-  //console.log(bkgdImage.sImage.height)
-  bkgdImage.sImage.height = canvas.height;
-  //console.log(bkgdImage.sImage.height);
 }
 
 function load()
@@ -139,21 +137,27 @@ function init() {
     resizeCanvas();
 
     bkgdImage = new aSprite(0,0,"clouds.png", 100, 0, "Generic");
-    theCar = new aSprite(100,0,"mario.png", 0, 0, "Generic");
+    startImage = new aSprite(0,0,"Menu.png", 0, 0, "Generic");
+    endImage = new aSprite(0,0,"clouds.png", 0, 0, "Generic");
+    mario = new aSprite(100,0,"mario.png", 0, 0, "Generic");
     left = new aSprite(100, 0, "left.png", 0, 0, "Generic");
     right = new aSprite(100, 0, "right.png", 0, 0, "Generic");
-    brick1 = new aSprite(100, 0, "brick.png", 100, 0, "Generic");
-//    brick2 = new aSprite(100, 0, "brick.png", 100, 0, "Generic");
-//    brick3 = new aSprite(100, 0, "brick.png", 100, 0, "Generic");
+    aButton = new aSprite(100, 0, "Abutton.png", 0, 0, "Generic");
+    floor = new aSprite(100, 0, "brick.png", 100, 0, "Generic");
+    startButton = new aSprite(0,0,"startButton.png", 0, 0, "Generic");
+    exitButton = new aSprite(0,0,"exit.png", 0, 0, "Generic");
 
-    console.log(bkgdImage.sImage.height);
-    console.log(theCar.sImage.height);
-    console.log(left.sImage.height);
-
-    theCar.sPos(canvas.width/10, canvas.height - (3*canvas.height/20 + window.innerHeight/15));
+    mario.sPos(canvas.width/10, canvas.height - (3*canvas.height/20 + window.innerHeight/15));
     left.sPos(canvas.width/10, 9 * canvas.height/10);
     right.sPos(3*canvas.width/10, 9 * canvas.height/10);
+    aButton.sPos(7*canvas.width/10, 9 * canvas.height/10);
+    startButton.sPos(canvas.width/2 - canvas.width/20, 5 *canvas.height/10);
+    exitButton.sPos(canvas.width/2 - canvas.width/20, 6 *canvas.height/10);
+    startImage.sPos(canvas.width/2 - canvas.width/6, 1 *canvas.height/10);
+
     startTimeMS = Date.now();
+    bkgdAudio.loop = true;
+    bkgdAudio.play();
     gameLoop();
   }
 }
@@ -181,25 +185,57 @@ function gameLoop(){
 }
 
 function render(delta) {
-  canvasContext.clearRect(0,0,canvas.width, canvas.height);
-  bkgdImage.scrollBK(travel, bkgdImage.sImage.width, canvas.height);
-  brick1.scrollBrick(travel, brick1.sImage.width/3, 3*canvas.height/20);
-  theCar.render(window.innerWidth/15, window.innerHeight/15);
-  left.render(window.innerWidth/10, window.innerHeight/10);
-  right.render(window.innerWidth/10, window.innerHeight/10);
+  if (screenMode == 0)
+  {
+    canvasContext.clearRect(0,0,canvas.width, canvas.height);
+    bkgdImage.scrollBK(travel, bkgdImage.sImage.width, canvas.height);
+    floor.scrollBrick(travel, floor.sImage.width/3, 3*canvas.height/20);
+    startButton.render(window.innerWidth/10, window.innerHeight/10);
+    exitButton.render(window.innerWidth/10, window.innerHeight/10);
+    startImage.render(window.innerWidth/3, 3 * window.innerHeight/10);
+  }
+  if (screenMode == 1)
+  {
+    canvasContext.clearRect(0,0,canvas.width, canvas.height);
+    bkgdImage.scrollBK(travel, bkgdImage.sImage.width, canvas.height);
+    floor.scrollBrick(travel, floor.sImage.width/3, 3*canvas.height/20);
+    mario.render(window.innerWidth/15, window.innerHeight/15);
+    left.render(window.innerWidth/10, window.innerHeight/10);
+    right.render(window.innerWidth/10, window.innerHeight/10);
+    aButton.render(window.innerWidth/10, window.innerHeight/10);
+  }
 }
 
 function update(delta) {
 }
 
 function collisionDetection() {
-  if ((lastPt.x > left.x && lastPt.x < (left.x + left.sImage.width)) && (lastPt.y > left.y && lastPt.y < (left.y + left.sImage.height)))
+  if (screenMode == 0)
   {
-    leftPressed = true;
+    if ((lastPt.x > startButton.x && lastPt.x < (startButton.x + startButton.sImage.width)) && (lastPt.y > startButton.y && lastPt.y < (startButton.y + startButton.sImage.height)))
+    {
+      clickAudio.play()
+      screenMode = 1;
+    }
+    if ((lastPt.x > exitButton.x && lastPt.x < (exitButton.x + exitButton.sImage.width)) && (lastPt.y > exitButton.y && lastPt.y < (exitButton.y + exitButton.sImage.height)))
+    {
+      return;
+    }
   }
-  if ((lastPt.x > right.x && lastPt.x < (right.x + right.sImage.width)) && (lastPt.y > right.y && lastPt.y < (right.y + right.sImage.height)))
+  if (screenMode == 1)
   {
-    rightPressed = true;
+    if ((lastPt.x > left.x && lastPt.x < (left.x + left.sImage.width)) && (lastPt.y > left.y && lastPt.y < (left.y + left.sImage.height)))
+    {
+      leftPressed = true;
+    }
+    if ((lastPt.x > right.x && lastPt.x < (right.x + right.sImage.width)) && (lastPt.y > right.y && lastPt.y < (right.y + right.sImage.height)))
+    {
+      rightPressed = true;
+    }
+    if ((lastPt.x > aButton.x && lastPt.x < (aButton.x + aButton.sImage.width)) && (lastPt.y > aButton.y && lastPt.y < (aButton.y + aButton.sImage.height)))
+    {
+      jumpAudio.play();
+    }
   }
 }
 
@@ -221,11 +257,7 @@ function touchUp(evt) {
 
 function touchDown(evt) {
   evt.preventDefault();
-  //if(gameOverScreen)
-  //{
-  //  return;
-  //}
-  //touchXY(evt);
+
   if(lastPt!=null) {
     var touchX = evt.touches[0].pageX - canvas.offsetLeft;
     var touchY = evt.touches[0].pageY - canvas.offsetTop;
