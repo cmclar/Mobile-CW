@@ -63,11 +63,6 @@ class aSprite {
     this.y = newY;
   }
 
-  jumpChar()
-  {
-    this.y -= 5;
-  }
-
   // Static Method
   static distance(a, b) {
     const dx = a.x - b.x;
@@ -114,8 +109,7 @@ var jumpAudio = new Audio('jump.wav');
 var brickSmash = new Audio('brickSmash.wav');
 var kickSound = new Audio('kick.wav');
 
-var jumpTime = 0;
-var jumpInterval = 0;
+var jumping = false;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -185,6 +179,18 @@ function gameLoop(){
   {
     travel = 0;
   }
+
+  if (jumping)
+  {
+    if (Date.now()/1000 < jumpTime + 1)
+    {
+      mario.y = mario.y - elapsed * 100;
+    }
+    if ((Date.now()/1000 >= jumpTime + 1) && (Date.now()/1000 < jumpTime + 2))
+    {
+      mario.y = mario.y + elapsed * 100;
+    }
+  }
   update(elapsed);
   render(elapsed);
 
@@ -211,19 +217,6 @@ function render(delta) {
     left.render(window.innerWidth/10, window.innerHeight/10);
     right.render(window.innerWidth/10, window.innerHeight/10);
     aButton.render(window.innerWidth/10, window.innerHeight/10);
-  }
-}
-
-function jump()
-{
-  while (jumpTime + 5 > elapsed)
-  {
-    if (elapsed > jumpInterval)
-    {
-      jumpInterval = elapsed + 0.5;
-      console.log("honk");
-      mario.jumpChar(elapsed);
-    }
   }
 }
 
@@ -255,7 +248,9 @@ function collisionDetection() {
     }
     if ((lastPt.x > aButton.x && lastPt.x < (aButton.x + aButton.sImage.width)) && (lastPt.y > aButton.y && lastPt.y < (aButton.y + aButton.sImage.height)))
     {
-      mario.jumpChar();
+      jumpAudio.play();
+      jumping = true;
+      jumpTime = Date.now()/1000;
     }
   }
 }
