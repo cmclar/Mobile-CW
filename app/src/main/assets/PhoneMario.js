@@ -63,6 +63,11 @@ class aSprite {
     this.y = newY;
   }
 
+  jumpChar()
+  {
+    this.y -= 5;
+  }
+
   // Static Method
   static distance(a, b) {
     const dx = a.x - b.x;
@@ -108,6 +113,9 @@ var clickAudio = new Audio('click.wav');
 var jumpAudio = new Audio('jump.wav');
 var brickSmash = new Audio('brickSmash.wav');
 var kickSound = new Audio('kick.wav');
+
+var jumpTime = 0;
+var jumpInterval = 0;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -206,6 +214,19 @@ function render(delta) {
   }
 }
 
+function jump()
+{
+  while (jumpTime + 5 > elapsed)
+  {
+    if (elapsed > jumpInterval)
+    {
+      jumpInterval = elapsed + 0.5;
+      console.log("honk");
+      mario.jumpChar(elapsed);
+    }
+  }
+}
+
 function update(delta) {
 }
 
@@ -234,7 +255,7 @@ function collisionDetection() {
     }
     if ((lastPt.x > aButton.x && lastPt.x < (aButton.x + aButton.sImage.width)) && (lastPt.y > aButton.y && lastPt.y < (aButton.y + aButton.sImage.height)))
     {
-      jumpAudio.play();
+      mario.jumpChar();
     }
   }
 }
