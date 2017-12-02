@@ -110,6 +110,9 @@ var brickSmash = new Audio('brickSmash.wav');
 var kickSound = new Audio('kick.wav');
 
 var jumping = false;
+var falling = false;
+
+var marioStartPosY;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -149,7 +152,9 @@ function init() {
     startButton = new aSprite(0,0,"startButton.png", 0, 0, "Generic");
     exitButton = new aSprite(0,0,"exit.png", 0, 0, "Generic");
 
-    mario.sPos(canvas.width/10, canvas.height - (3*canvas.height/20 + window.innerHeight/15));
+    marioStartPosY = canvas.height - (3*canvas.height/20 + window.innerHeight/15)
+
+    mario.sPos(canvas.width/10, marioStartPosY);
     left.sPos(canvas.width/10, 9 * canvas.height/10);
     right.sPos(3*canvas.width/10, 9 * canvas.height/10);
     aButton.sPos(7*canvas.width/10, 9 * canvas.height/10);
@@ -186,9 +191,20 @@ function gameLoop(){
     {
       mario.y = mario.y - elapsed * 100;
     }
-    if ((Date.now()/1000 >= jumpTime + 1) && (Date.now()/1000 < jumpTime + 2))
+    if (Date.now()/1000 >= jumpTime + 1)
     {
-      mario.y = mario.y + elapsed * 100;
+      jumping = false;
+      falling = true;
+    }
+  }
+
+  if (falling)
+  {
+    mario.y = mario.y + elapsed * 100;
+    if (mario.y >= marioStartPosY)
+    {
+      mario.y = marioStartPosY;
+      falling = false;
     }
   }
   update(elapsed);
