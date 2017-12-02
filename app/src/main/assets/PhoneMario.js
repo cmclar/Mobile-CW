@@ -57,6 +57,33 @@ class aSprite {
     canvasContext.drawImage(this.sImage, 4 * width, canvas.height - height, width, height);
     canvasContext.restore();
   }
+
+  scrollSB(delta, width, height){
+    //this.x -= delta / this.vx;
+    canvasContext.drawImage(this.sImage,this.x, this.y, width, height);
+  }
+
+
+  //((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) &&
+
+  checkCollisions(obj)
+  {
+    if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) &&((obj.y >= (this.y + window.innerHeight/30)) && (obj.y <= (this.y + window.innerHeight/15))))
+    {
+      jumping = false;
+      falling = true;
+    }
+    //console.log(obj.y, obj.y+window.innerHeight/15, this.y, this.y+innerHeight/45)
+    //(obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45)
+    if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) && (obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45) && (obj.y + window.innerHeight/15 >= this.y))
+    {
+      console.log("honk")
+      obj.y = this.y-window.innerHeight/15;
+      falling = false;
+      jumping = false;
+    }
+  }
+
   // Method
   sPos(newX,newY){
     this.x = newX;
@@ -86,6 +113,7 @@ class Enemy extends aSprite {
   }
 }
 
+
 var canvas;
 var canvasContext;
 
@@ -113,6 +141,8 @@ var jumping = false;
 var falling = false;
 
 var marioStartPosY;
+
+var brickHeight = 13*window.innerHeight/20;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -151,6 +181,9 @@ function init() {
     floor = new aSprite(100, 0, "brick.png", 100, 0, "Generic");
     startButton = new aSprite(0,0,"startButton.png", 0, 0, "Generic");
     exitButton = new aSprite(0,0,"exit.png", 0, 0, "Generic");
+    brick1 = new aSprite(100 ,0,"singleBrick.png", 100, 0, "Generic");
+    brick2 = new aSprite(100, 0, "singleBrick.png", 100, 0, "Generic");
+    brick3 = new aSprite(100, 0, "singleBrick.png", 100, 0, "Generic");
 
     marioStartPosY = canvas.height - (3*canvas.height/20 + window.innerHeight/15)
 
@@ -161,6 +194,9 @@ function init() {
     startButton.sPos(canvas.width/2 - canvas.width/20, 5 *canvas.height/10);
     exitButton.sPos(canvas.width/2 - canvas.width/20, 6 *canvas.height/10);
     startImage.sPos(canvas.width/2 - canvas.width/6, 1 *canvas.height/10);
+    brick1.sPos(6*canvas.width/15, brickHeight);
+    brick2.sPos(7*canvas.width/15, brickHeight);
+    brick3.sPos(8*canvas.width/15, brickHeight);
 
     startTimeMS = Date.now();
     bkgdAudio.loop = true;
@@ -171,42 +207,12 @@ function init() {
 
 function gameLoop(){
   elapsed = (Date.now() - startTimeMS)/1000;
-  if (leftPressed)
-  {
-    travel -= elapsed * bkgdImage.vx;
-  }
-  if (rightPressed)
-  {
-    travel += elapsed * bkgdImage.vx;
-  }
 
-  if (travel > bkgdImage.sImage.width)
+  if (!jumping)
   {
-    travel = 0;
-  }
+    falling = true;
+  }  
 
-  if (jumping)
-  {
-    if (Date.now()/1000 < jumpTime + 1)
-    {
-      mario.y = mario.y - elapsed * 100;
-    }
-    if (Date.now()/1000 >= jumpTime + 1)
-    {
-      jumping = false;
-      falling = true;
-    }
-  }
-
-  if (falling)
-  {
-    mario.y = mario.y + elapsed * 100;
-    if (mario.y >= marioStartPosY)
-    {
-      mario.y = marioStartPosY;
-      falling = false;
-    }
-  }
   update(elapsed);
   render(elapsed);
 
@@ -233,10 +239,66 @@ function render(delta) {
     left.render(window.innerWidth/10, window.innerHeight/10);
     right.render(window.innerWidth/10, window.innerHeight/10);
     aButton.render(window.innerWidth/10, window.innerHeight/10);
+    brick1.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    brick2.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    brick3.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
   }
 }
 
 function update(delta) {
+  movement();
+  collision();
+}
+
+function collision() {
+  brick1.checkCollisions(mario);
+  brick2.checkCollisions(mario);
+  brick3.checkCollisions(mario);
+}
+
+function movement() {
+  if (leftPressed)
+  {
+    travel -= elapsed * bkgdImage.vx;
+    brick1.x += elapsed * brick1.vx;
+    brick2.x += elapsed * brick1.vx;
+    brick3.x += elapsed * brick1.vx;
+  }
+  if (rightPressed)
+  {
+    travel += elapsed * bkgdImage.vx;
+    brick1.x -= elapsed * brick1.vx;
+    brick2.x -= elapsed * brick1.vx;
+    brick3.x -= elapsed * brick1.vx;
+  }
+
+  if (travel > bkgdImage.sImage.width)
+  {
+    travel = 0;
+  }
+
+  if (jumping)
+  {
+    if (Date.now()/1000 < jumpTime + 1)
+    {
+      mario.y = mario.y - elapsed * 250;
+    }
+    if (Date.now()/1000 >= jumpTime + 1)
+    {
+      jumping = false;
+      falling = true;
+    }
+  }
+
+  if (falling)
+  {
+    mario.y = mario.y + elapsed * 250;
+    if (mario.y >= marioStartPosY)
+    {
+      mario.y = marioStartPosY;
+      falling = false;
+    }
+  }
 }
 
 function collisionDetection() {
