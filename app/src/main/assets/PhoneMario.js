@@ -8,6 +8,7 @@ class aSprite {
     this.sType = spType;
     this.sImage = new Image();
     this.sImage.src = imageSRC;
+    this.active = true;
   }
   // Getter
   get xPos(){
@@ -30,37 +31,48 @@ class aSprite {
   // Method
   render(width, height)
   {
-    canvasContext.drawImage(this.sImage,this.x, this.y, width, height);
+    if (this.active)
+    {
+      canvasContext.drawImage(this.sImage,this.x, this.y, width, height);
+    }
   }
   // Method
   scrollBK(delta, width, height)
   {
-    //var xPos = delta * this.vx;
-
-    canvasContext.save();
-    canvasContext.translate(-delta, 0);
-    canvasContext.drawImage(this.sImage,0, 0, width, height);
-    canvasContext.drawImage(this.sImage,this.sImage.width, 0, width, height);
-    canvasContext.restore();
+    if (this.active)
+    {
+      canvasContext.save();
+      canvasContext.translate(-delta, 0);
+      canvasContext.drawImage(this.sImage,0, 0, width, height);
+      canvasContext.drawImage(this.sImage,this.sImage.width, 0, width, height);
+      canvasContext.drawImage(this.sImage,2*this.sImage.width, 0, width, height);
+      canvasContext.restore();
+    }
   }
 
   scrollBrick(delta, width, height)
   {
-    //var xPos = delta * this.vx;
-
-    canvasContext.save();
-    canvasContext.translate(-delta, 0);
-    canvasContext.drawImage(this.sImage, 0, canvas.height - height, width, height);
-    canvasContext.drawImage(this.sImage, width, canvas.height - height, width, height);
-    canvasContext.drawImage(this.sImage, 2 * width, canvas.height - height, width, height);
-    canvasContext.drawImage(this.sImage, 3 * width, canvas.height - height, width, height);
-    canvasContext.drawImage(this.sImage, 4 * width, canvas.height - height, width, height);
-    canvasContext.restore();
+    if (this.active)
+    {
+      canvasContext.save();
+      canvasContext.translate(-delta, 0);
+      canvasContext.drawImage(this.sImage, 0, canvas.height - height, width, height);
+      canvasContext.drawImage(this.sImage, width, canvas.height - height, width, height);
+      canvasContext.drawImage(this.sImage, 2 * width, canvas.height - height, width, height);
+      canvasContext.drawImage(this.sImage, 3 * width, canvas.height - height, width, height);
+      canvasContext.drawImage(this.sImage, 4 * width, canvas.height - height, width, height);
+      canvasContext.drawImage(this.sImage, 5 * width, canvas.height - height, width, height);
+      canvasContext.drawImage(this.sImage, 6 * width, canvas.height - height, width, height);
+      canvasContext.restore();
+    }
   }
 
   scrollSB(delta, width, height){
     //this.x -= delta / this.vx;
-    canvasContext.drawImage(this.sImage,this.x, this.y, width, height);
+    if (this.active)
+    {
+      canvasContext.drawImage(this.sImage,this.x, this.y, width, height);
+    }
   }
 
 
@@ -68,19 +80,23 @@ class aSprite {
 
   checkCollisions(obj)
   {
-    if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) &&((obj.y >= (this.y + window.innerHeight/30)) && (obj.y <= (this.y + window.innerHeight/15))))
+    if (this.active)
     {
-      jumping = false;
-      falling = true;
-    }
-    //console.log(obj.y, obj.y+window.innerHeight/15, this.y, this.y+innerHeight/45)
-    //(obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45)
-    if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) && (obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45) && (obj.y + window.innerHeight/15 >= this.y))
-    {
-      console.log("honk")
-      obj.y = this.y-window.innerHeight/15;
-      falling = false;
-      jumping = false;
+      if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) &&((obj.y >= (this.y + window.innerHeight/30)) && (obj.y <= (this.y + window.innerHeight/15))))
+      {
+        jumping = false;
+        falling = true;
+        this.active = false;
+        brickSmash.play();
+      }
+      //console.log(obj.y, obj.y+window.innerHeight/15, this.y, this.y+innerHeight/45)
+      //(obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45)
+      if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) && (obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45) && (obj.y + window.innerHeight/15 >= this.y))
+      {
+        obj.y = this.y-window.innerHeight/15;
+        falling = false;
+        jumping = false;
+      }
     }
   }
 
@@ -111,6 +127,41 @@ class Enemy extends aSprite {
     super.spriteType();
     console.log('I am a ' + this.sType + ' instance of aSprite!!!');
   }
+  checkEnemyCollisions(obj){
+    if (this.active)
+    {
+      if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) && (obj.y >= this.y - (2* window.innerHeight/45)))
+      {
+        dieSound.play();
+        screenMode = 2;
+        this.active = false;
+      }
+      if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) && (obj.y + window.innerHeight/15 <= this.y + window.innerHeight/45) && (obj.y + window.innerHeight/15 >= this.y))
+      {
+        kickSound.play();
+        this.active = false;
+      }
+    }
+  }
+}
+
+class Coin extends aSprite {
+  // Method
+  spriteType(){
+    super.spriteType();
+    console.log('I am a ' + this.sType + ' instance of aSprite!!!');
+  }
+  checkCoinCollisions(obj){
+    if (this.active)
+    {
+      if (((obj.x + window.innerWidth/20 >= this.x) && (obj.x <= (this.x + window.innerWidth/20))) && ((obj.y <= this.y + window.innerHeight/15) && (obj.y >= this.y)))
+      {
+        coinSound.play();
+        this.active = false;
+        score++;
+      }
+    }
+  }
 }
 
 
@@ -136,6 +187,8 @@ var clickAudio = new Audio('click.wav');
 var jumpAudio = new Audio('jump.wav');
 var brickSmash = new Audio('brickSmash.wav');
 var kickSound = new Audio('kick.wav');
+var dieSound = new Audio('die.mp3');
+var coinSound = new Audio('coin.mp3');
 
 var jumping = false;
 var falling = false;
@@ -143,6 +196,10 @@ var falling = false;
 var marioStartPosY;
 
 var brickHeight = 13*window.innerHeight/20;
+var coinHeight = 11*window.innerHeight/20;
+
+var score = 0;
+var counter = 0;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -181,9 +238,7 @@ function init() {
     floor = new aSprite(100, 0, "brick.png", 100, 0, "Generic");
     startButton = new aSprite(0,0,"startButton.png", 0, 0, "Generic");
     exitButton = new aSprite(0,0,"exit.png", 0, 0, "Generic");
-    brick1 = new aSprite(100 ,0,"singleBrick.png", 100, 0, "Generic");
-    brick2 = new aSprite(100, 0, "singleBrick.png", 100, 0, "Generic");
-    brick3 = new aSprite(100, 0, "singleBrick.png", 100, 0, "Generic");
+    shroom = new Enemy(0, 0, "goomba.png", 60, 0, "Generic");
 
     marioStartPosY = canvas.height - (3*canvas.height/20 + window.innerHeight/15)
 
@@ -194,13 +249,13 @@ function init() {
     startButton.sPos(canvas.width/2 - canvas.width/20, 5 *canvas.height/10);
     exitButton.sPos(canvas.width/2 - canvas.width/20, 6 *canvas.height/10);
     startImage.sPos(canvas.width/2 - canvas.width/6, 1 *canvas.height/10);
-    brick1.sPos(6*canvas.width/15, brickHeight);
-    brick2.sPos(7*canvas.width/15, brickHeight);
-    brick3.sPos(8*canvas.width/15, brickHeight);
+    shroom.sPos(12*canvas.width/15, marioStartPosY);
+
+    initialiseBricks();
 
     startTimeMS = Date.now();
     bkgdAudio.loop = true;
-    bkgdAudio.play();
+    //bkgdAudio.play();
     gameLoop();
   }
 }
@@ -211,7 +266,7 @@ function gameLoop(){
   if (!jumping)
   {
     falling = true;
-  }  
+  }
 
   update(elapsed);
   render(elapsed);
@@ -229,6 +284,9 @@ function render(delta) {
     startButton.render(window.innerWidth/10, window.innerHeight/10);
     exitButton.render(window.innerWidth/10, window.innerHeight/10);
     startImage.render(window.innerWidth/3, 3 * window.innerHeight/10);
+    left.render(window.innerWidth/10, window.innerHeight/10);
+    right.render(window.innerWidth/10, window.innerHeight/10);
+    aButton.render(window.innerWidth/10, window.innerHeight/10);
   }
   if (screenMode == 1)
   {
@@ -242,6 +300,23 @@ function render(delta) {
     brick1.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
     brick2.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
     brick3.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    coin1.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    coin2.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    coin3.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    shroom.scrollSB(travel, window.innerWidth/15, window.innerHeight/15);
+    styleText('white', '50px Courier New', 'center', 'middle');
+    canvasContext.fillText("score: " + score, canvas.width/2, canvas.height/13);
+  }
+  if (screenMode == 2)
+  {
+    canvasContext.clearRect(0,0,canvas.width, canvas.height);
+    bkgdImage.scrollBK(travel, bkgdImage.sImage.width, canvas.height);
+    floor.scrollBrick(travel, floor.sImage.width/3, 3*canvas.height/20);
+    startButton.render(window.innerWidth/10, window.innerHeight/10);
+    exitButton.render(window.innerWidth/10, window.innerHeight/10);
+    startImage.render(window.innerWidth/3, 3 * window.innerHeight/10);
+    styleText('white', '50px Courier New', 'center', 'middle');
+    canvasContext.fillText("score: " + score, canvas.width/2, 9*canvas.height/20);
   }
 }
 
@@ -254,27 +329,56 @@ function collision() {
   brick1.checkCollisions(mario);
   brick2.checkCollisions(mario);
   brick3.checkCollisions(mario);
+  coin1.checkCoinCollisions(mario);
+  coin2.checkCoinCollisions(mario);
+  coin3.checkCoinCollisions(mario);
+  shroom.checkEnemyCollisions(mario);
 }
 
 function movement() {
-  if (leftPressed)
+  if (screenMode == 1)
   {
-    travel -= elapsed * bkgdImage.vx;
-    brick1.x += elapsed * brick1.vx;
-    brick2.x += elapsed * brick1.vx;
-    brick3.x += elapsed * brick1.vx;
-  }
-  if (rightPressed)
-  {
-    travel += elapsed * bkgdImage.vx;
-    brick1.x -= elapsed * brick1.vx;
-    brick2.x -= elapsed * brick1.vx;
-    brick3.x -= elapsed * brick1.vx;
+    if (shroom.x < mario.x)
+    {
+      shroom.x += elapsed * shroom.vx;
+    }
+    else if (shroom.x > mario.x) {
+      shroom.x -= elapsed * shroom.vx;
+    }
+    if (leftPressed)
+    {
+      travel -= elapsed * bkgdImage.vx;
+      brick1.x += elapsed * brick1.vx;
+      brick2.x += elapsed * brick1.vx;
+      brick3.x += elapsed * brick1.vx;
+      coin1.x += elapsed * coin1.vx;
+      coin2.x += elapsed * coin2.vx;
+      coin3.x += elapsed * coin3.vx;
+      shroom.x += elapsed * 100;
+    }
+    if (rightPressed)
+    {
+      travel += elapsed * bkgdImage.vx;
+      brick1.x -= elapsed * brick1.vx;
+      brick2.x -= elapsed * brick1.vx;
+      brick3.x -= elapsed * brick1.vx;
+      coin1.x -= elapsed * coin1.vx;
+      coin2.x -= elapsed * coin2.vx;
+      coin3.x -= elapsed * coin3.vx;
+      shroom.x -= elapsed * 100;
+    }
   }
 
-  if (travel > bkgdImage.sImage.width)
+  if (travel > window.innerWidth) //bkgdImage.sImage.width)
   {
-    travel = 0;
+    if (counter < 5)
+    {
+      counter++;
+      initialiseBricks();
+    }
+    else {
+      screenMode = 2;
+    }
   }
 
   if (jumping)
@@ -301,6 +405,27 @@ function movement() {
   }
 }
 
+function initialiseBricks() {
+  travel = 0;
+  brick1 = new aSprite(100 ,0,"singleBrick.png", 100, 0, "Generic");
+  brick2 = new aSprite(100, 0, "singleBrick.png", 100, 0, "Generic");
+  brick3 = new aSprite(100, 0, "singleBrick.png", 100, 0, "Generic");
+  brick1.sPos(6*canvas.width/15, brickHeight);
+  brick2.sPos(8*canvas.width/15, brickHeight);
+  brick3.sPos(10*canvas.width/15, brickHeight);
+  coin1 = new Coin(100, 0, "coin.png", 100, 0, "Generic");
+  coin2 = new Coin(100, 0, "coin.png", 100, 0, "Generic");
+  coin3 = new Coin(100, 0, "coin.png", 100, 0, "Generic");
+  coin1.sPos(6*canvas.width/15, coinHeight);
+  coin2.sPos(8*canvas.width/15, coinHeight);
+  coin3.sPos(10*canvas.width/15, coinHeight);
+  if (!shroom.active)
+  {
+    shroom = new Enemy(100, 0, "goomba.png", 100, 0, "Generic");
+    shroom.sPos(10*canvas.width/15, marioStartPosY);
+  }
+}
+
 function collisionDetection() {
   if (screenMode == 0)
   {
@@ -308,6 +433,7 @@ function collisionDetection() {
     {
       clickAudio.play()
       screenMode = 1;
+      initialiseBricks();
     }
     if ((lastPt.x > exitButton.x && lastPt.x < (exitButton.x + exitButton.sImage.width)) && (lastPt.y > exitButton.y && lastPt.y < (exitButton.y + exitButton.sImage.height)))
     {
