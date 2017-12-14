@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         webView = (WebView)findViewById(R.id.webview1);
 
+        webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+
         webView.getSettings().setJavaScriptEnabled(true);
         webView.loadUrl("file:///android_asset/MobileCW.html");
 
