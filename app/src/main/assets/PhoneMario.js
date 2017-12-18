@@ -30,6 +30,12 @@ class aSprite {
     this.y = newY;
   }
 
+  // Sets the x and y coords of the sprite
+  sPos(newX,newY){
+    this.x = newX;
+    this.y = newY;
+  }
+
   // Basic Render Method
   render(width, height)
   {
@@ -108,12 +114,6 @@ class aSprite {
         jumping = false;
       }
     }
-  }
-
-  // Sets the x and y coords of the sprite
-  sPos(newX,newY){
-    this.x = newX;
-    this.y = newY;
   }
 
   // Static Method
